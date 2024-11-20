@@ -1,7 +1,9 @@
 import socket
+from httprequests.parser import HTTPParser
+from utils import pretty_print_request
 
 
-class Server:
+class HTTPServer:
     '''
     Simple HTTP 1.0 server.
     available methods GET, POST
@@ -11,6 +13,8 @@ class Server:
         self.port = port
         # create a listener socket object, sock_stream for TCP
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self.parser = HTTPParser()
+
     def start(self):
         '''
         Main server loop.
@@ -32,24 +36,39 @@ class Server:
         Handle the connection with client.
         Try to parse the request if available.
         '''
-        request_data = com.recv(1024).decode() # data comes in raw bytes
-        if not request_data:
-            return
-        print(request_data)
+        try:
+            request_data = com.recv(1024).decode() # data comes in raw bytes
+            if not request_data:
+                return
+            # print pre-parsed data for debugging
+            print(request_data)
+            parsed_request = self.parser.parse(request_data)
+            print('Parsed request: ')
+            pretty_print_request(parsed_request)
+            #response = build_response(200, "OK", "Hello, World!")
+            response = (
+                        'HTTP/1.0 200 OK\r\n'
+                        'Content-Type: text/plain\r\n'
+                        'Content-Length: 13\r\n'
+                        '\r\n'
+                        'Hello, World!'
+                    )
+            com.sendall(response.encode())
+        except ValueError:
+            # Version mismatch
+            response = (
+                'HTTP/1.0 505 HTTP Version not supported\r\n'
+                'Content-Type: text/plain\r\n'
+                'Content-Length: 0\r\n\r\n'
+            )
+            com.sendall(response.encode())
 
-        response = (
-                    'HTTP/1.0 200 OK\r\n'
-                    'Content-Type: text/plain\r\n'
-                    'Content-Length: 13\r\n'
-                    '\r\n'
-                    'Hello, World!'
-                )
-        com.sendall(response.encode())
-        com.close()
+        finally:
+            com.close()
 
     def parse_request(self, request_data):
         pass
 
 if __name__ == '__main__':
-    server = Server()
+    server = HTTPServer()
     server.start()
