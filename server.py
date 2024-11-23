@@ -41,7 +41,7 @@ class HTTPServer:
             if not request_data:
                 return
             # print pre-parsed data for debugging
-            print(request_data)
+            #print(request_data)
             parsed_request = self.parser.parse(request_data)
             print('Parsed request: ')
             pretty_print_request(parsed_request)
@@ -65,9 +65,6 @@ class HTTPServer:
 
         finally:
             com.close()
-
-    def parse_request(self, request_data):
-        pass
 
 if __name__ == '__main__':
     server = HTTPServer()

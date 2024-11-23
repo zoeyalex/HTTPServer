@@ -6,30 +6,41 @@ class HTTPParser:
         '''
         Parse full request.
         '''
-        lines = request_data.split('\r\n')
-        method, full_path, version = lines[0].split()
-        if version != 'HTTP/1.0':
-            raise ValueError
+        # create an iterator for request lines
+        lines = iter(request_data.split('\r\n'))
+
+        # parse the request line
+        method, full_path, version = self._parse_request_line(next(lines))
+
+        # extract path and params if they exist
         path, query_params = self._parse_path(full_path)
-        # add header/body parsing
+
+        # parse headers
+        headers = self._parse_headers(lines)
+
+        # parse body
+        body = self._parse_body(lines, headers)
+
         return {
             'method': method,
             'path': path,
             'query_params': query_params,
             'version': version,
-            'headers': {
-                'Host': 'localhost:8080',
-                'User-Agent': 'Client/1.0',
-                'Content-Type': 'text/plain',
-                'Connection': 'Close'
-            },
-            'body': 'testtest123'
+            'headers': headers,
+            'body': body
         }
+
+    def _parse_request_line(self, request_data):
+        '''
+        Parse request line (e.g. GET /doc/test.html HTTP/1.0)
+        '''
+        # will need to check for malformed syntax and version
+        return request_data.split()
+
 
     def _parse_path(self, full_path):
         '''
         Parse the full path to check for query params.
-        For internal use only.
         '''
         if '?' in full_path:
             # seperate query params from path
@@ -40,3 +51,30 @@ class HTTPParser:
             path = full_path
             query_params = {}
         return path, query_params
+
+    def _parse_headers(self, headers_lines):
+        '''
+        Parse requests headers
+        '''
+        # will need to check for malformed syntax
+        headers = {}
+        for line in headers_lines:
+            if line == '':
+                break
+            # split at the first colon
+            k, v = line.split(':', 1)
+            headers[k] = v.strip()
+        return headers
+
+    def _parse_body(self, body_lines, headers):
+        '''
+        Parse the request body.
+        And check Content-Length
+        '''
+        # add content length check
+        # content_length = int(headers.get('Content-Length'))
+        return ''.join(body_lines)
+        
+
+    def validate_request(method, path, version, headers, body):
+        pass
