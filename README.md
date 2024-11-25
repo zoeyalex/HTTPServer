@@ -18,7 +18,15 @@ A simple HTTP/1.0 server written in Python. This project aims to support basic H
 ## Usage
 To run the server:
 ```bash
-python server.py
+usage: server.py [-h] [--host HOST] [--port PORT] [--backlog BACKLOG]
+
+HTTP 1.0 Server
+
+options:
+  -h, --help         show this help message and exit
+  --host HOST        Host to bind the server to (default: localhost)
+  --port PORT        Port to bind the server to (default: 8080)
+  --backlog BACKLOG  Socket backlog size (default: 1)
 ```
 To run the client:
 ```python
