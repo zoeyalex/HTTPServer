@@ -1,3 +1,7 @@
+from httprequests.exceptions import *
+from utils import MAX_REQUEST_SIZE, VALID_HTTP_1_0_HEADERS
+
+
 class HTTPParser:
     '''
     Parser for HTTP/1.0 requests.
@@ -6,19 +10,27 @@ class HTTPParser:
         '''
         Parse full request.
         '''
-        # create an iterator for request lines
+        # Check for empty request.
+        if not request_data.strip():
+            raise BadRequest(body='Bad Request: Empty Request.')
+
+        # Check if request too long.
+        if len(request_data) > MAX_REQUEST_SIZE:
+            raise BadRequest(body='Bad Request: Request too long.')
+
+        # Create an iterator for request lines.
         lines = iter(request_data.split('\r\n'))
 
-        # parse the request line
+        # Parse the request line.
         method, full_path, version = self._parse_request_line(next(lines))
 
-        # extract path and params if they exist
+        # Extract path and params if they exist.
         path, query_params = self._parse_path(full_path)
 
-        # parse headers
+        # Parse request headers.
         headers = self._parse_headers(lines)
 
-        # parse body
+        # Parse request body.
         body = self._parse_body(lines, headers)
 
         return {
@@ -34,8 +46,16 @@ class HTTPParser:
         '''
         Parse request line (e.g. GET /doc/test.html HTTP/1.0)
         '''
-        # will need to check for malformed syntax and version
-        return request_data.split()
+        try:
+            method, full_path, version = request_data.split()
+        except ValueError as e:
+            raise BadRequest(body='Bad Request: Malformed request line.') from e
+        valid_methods = {'GET', 'POST', 'HEAD'}
+        if method not in valid_methods:
+            raise BadRequest(body=f'Bad Request: Unsupported method {method}.')
+        if version != 'HTTP/1.0':
+            raise BadRequest(body=f'Bad Request: Unsupported HTTP Version {version}.')
+        return method, full_path, version
 
 
     def _parse_path(self, full_path):
@@ -43,10 +63,13 @@ class HTTPParser:
         Parse the full path to check for query params.
         '''
         if '?' in full_path:
-            # seperate query params from path
+            # Seperate query params from path.
             path, query_params = full_path.split('?', 1)
-            # seperate key value pairs
-            query_params = dict(param.split('=') for param in query_params.split('&'))
+            try:
+                # Seperate key value pairs.
+                query_params = dict(param.split('=') for param in query_params.split('&'))
+            except ValueError as e:
+                raise BadRequest(body='Bad Request: Malformed query parameters.') from e
         else:
             path = full_path
             query_params = {}
@@ -56,14 +79,17 @@ class HTTPParser:
         '''
         Parse requests headers
         '''
-        # will need to check for malformed syntax
         headers = {}
         for line in headers_lines:
             if line == '':
                 break
-            # split at the first colon
-            k, v = line.split(':', 1)
-            headers[k] = v.strip()
+            if ':' not in line:
+                raise BadRequest(body=f'Bad Request: Malformed header {line}.')
+            # Split at the first colon.
+            key, value = line.split(':', 1)
+            if key not in VALID_HTTP_1_0_HEADERS:
+                raise BadRequest(body=f'BadRequest: Invalid header {key}.')
+            headers[key] = value.strip()
         return headers
 
     def _parse_body(self, body_lines, headers):
@@ -71,10 +97,6 @@ class HTTPParser:
         Parse the request body.
         And check Content-Length
         '''
-        # add content length check
+        # Add content length check.
         # content_length = int(headers.get('Content-Length'))
         return ''.join(body_lines)
-        
-
-    def validate_request(method, path, version, headers, body):
-        pass
