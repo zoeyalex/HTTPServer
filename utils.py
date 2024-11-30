@@ -1,15 +1,17 @@
 VALID_HTTP_1_0_HEADERS = {
     # Entity Headers.
-    "Allow", "Content-Encoding", "Content-Length", "Content-Type",
-    "Expires", "Last-Modified",
+    'Allow', 'Content-Encoding', 'Content-Length', 'Content-Type',
+    'Expires', 'Last-Modified',
     # Request Headers.
-    "Authorization", "From", "If-Modified-Since", "Referer", "User-Agent",
+    'Authorization', 'From', 'If-Modified-Since', 'Referer', 'User-Agent',
     # Response Headers.
-    "Location", "Server", "WWW-Authenticate",
+    'Location', 'Server', 'WWW-Authenticate',
     # General Headers.
-    "Date", "Pragma",
+    'Date', 'Pragma',
     # Host generally isn't supported but some applications may require it.
-    "Host",
+    'Host',
+    # Testing
+    'Accept', 'Connection'
 }
 MAX_REQUEST_SIZE = 1024
 def pretty_print_request(parsed_request):

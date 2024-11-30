@@ -29,7 +29,11 @@ class HTTPResponse:
         headers_str = "\r\n".join(f"{key}: {value}" for key, value in self.headers.items())
 
         # Return full response
-        return f"HTTP/1.0 {self.status_code} {self.reason}\r\n{headers_str}\r\n\r\n{self.body}"
+        if isinstance(self.body, str):
+            # If the body is a string, we encode it to bytes
+            return f"HTTP/1.0 {self.status_code} {self.reason}\r\n{headers_str}\r\n\r\n".encode('utf-8') + self.body.encode('utf-8')
+        else:
+            return f"HTTP/1.0 {self.status_code} {self.reason}\r\n{headers_str}\r\n\r\n".encode('utf-8') + self.body
 
 
 def _generate_server_header():

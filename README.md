@@ -1,11 +1,11 @@
 # HTTP/1.0 Server
 ## 👷‍♀️ Work in progress 🚧
-A simple HTTP/1.0 server written in Python. This project aims to support basic HTTP methods, status codes, and static file serving.
+A simple HTTP/1.0 server written in Python.
 ## Features
-- Supports the HTTP/1.0 protocol.
 - Request parsing.
 - Custom exception handling.
-- Response builder.
+- Custom response builder.
+- Static file serving.
 ## HTTP Methods Supported
 `GET`,`POST`,`HEAD`    
 ## HTTP Status Codes
@@ -34,5 +34,5 @@ python client.py
 ```
 Or make a request using curl:
 ```bash
-curl --http1.0 -v "http://localhost:8080/query?var1=123&var2=okay" -H "User-Agent: Client/1.0" -H "Accept: application/json"
+curl --http1.0 -v "http://localhost:8080/resource?param1=value1&param2=value2" -H "User-Agent: MyClient/1.0" -H "Accept: application/xml"
 ```

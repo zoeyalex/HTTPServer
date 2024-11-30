@@ -88,7 +88,7 @@ class HTTPParser:
             # Split at the first colon.
             key, value = line.split(':', 1)
             if key not in VALID_HTTP_1_0_HEADERS:
-                raise BadRequest(body=f'BadRequest: Invalid header {key}.')
+                raise BadRequest(body=f'Bad Request: Invalid header {key}.')
             headers[key] = value.strip()
         return headers
 

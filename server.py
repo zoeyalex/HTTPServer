@@ -1,6 +1,7 @@
 import socket
-import sys
+import os
 import argparse
+from determine_mime_type import get_mime_type
 from httprequests.parser import HTTPParser
 from httprequests.exceptions import *
 from httprequests.response_builder import HTTPResponse
@@ -12,11 +13,13 @@ class HTTPServer:
     Simple HTTP 1.0 server.
     available methods GET, POST
     '''
-    def __init__(self, host='localhost', port=8080, backlog=1):
+    def __init__(self, host='localhost', port=8080, backlog=1, static_dir='static'):
         self.host = host
         self.port = port
+        self.backlog = backlog
         # create a listener socket object, sock_stream for TCP
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self.static_dir = static_dir
         self.parser = HTTPParser()
 
     def start(self):
@@ -24,7 +27,7 @@ class HTTPServer:
         Main server loop.
         '''
         self.sock.bind((self.host, self.port))
-        self.sock.listen(1)
+        self.sock.listen(self.backlog)
         print(f'Server running on {self.host}:{self.port}')
         try:
             while True:
@@ -51,9 +54,18 @@ class HTTPServer:
             #print pre-parsed data for debugging
             #print(request_data)
             parsed_request = self.parser.parse(request_data)
+            method = parsed_request['method']
+            path = parsed_request['path']
+
             print('Parsed request: ')
             pretty_print_request(parsed_request)
-            response = HTTPResponse(200, body='OK').build()
+
+            # try serving file
+            if method == 'GET':
+                file_path = self.get_file_path(path)
+                response = self.serve_file(file_path)
+            else:
+                response = HTTPResponse(200, body='OK').build()
         except HTTPException as e:
             response = e.responsify().build()
         except Exception:
@@ -63,9 +75,36 @@ class HTTPServer:
             response = InternalServerError().responsify().build()
 
         finally:
-            # add newline to avoid terminal problems.
-            com.sendall((response+'\n').encode())
+            com.sendall((response))
             com.close()
+
+    def get_file_path(self, path):
+        '''
+        Map the requested path to a file path in the static directory.
+        '''
+        if path == "/":
+            path = "/index.html"
+        return os.path.join(self.static_dir, path.lstrip("/"))
+
+    def serve_file(self, file_path):
+        '''
+        Serve a static file.
+        '''
+        try:
+            # check if file exists
+            if not os.path.isfile(file_path):
+                raise NotFound(body='Not Found: {file_path}.')
+            
+            with open(file_path, 'rb') as f:
+                content = f.read()
+                mime_type = get_mime_type(file_path, content)
+            
+            #build response
+            headers = {"Content-Type": mime_type}
+            return HTTPResponse(200, headers=headers, body=content).build()
+        except NotFound as e:
+            return e.responsify().build()
+
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description="HTTP 1.0 Server")
