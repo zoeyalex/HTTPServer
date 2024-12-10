@@ -59,6 +59,7 @@ class HTTPServer:
 
             print('Parsed request: ')
             pretty_print_request(parsed_request)
+            print('\n')
 
             # try serving file
             if method == 'GET':
