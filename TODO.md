@@ -6,6 +6,7 @@
 - [x] Check for Content-Length header.
 - [x] Implement static file serving.
 - [x] Add extension checking to served files.
+- [x] Add user-defined routing.
 - [] Add POST and HEAD support.
 - [] Support path resolution of static.
 - [] Support the Accept header.
